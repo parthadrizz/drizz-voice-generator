@@ -55,6 +55,70 @@ async function fetchVoices() {
   return cachedVoices;
 }
 
+// ── Voice Presets ───────────────────────────────────────────────────────────
+
+const PRESETS = {
+  natural:        { stability: 0.45, similarity_boost: 0.75, style: 0.15 },
+  conversational: { stability: 0.35, similarity_boost: 0.75, style: 0.20 },
+  demo:           { stability: 0.50, similarity_boost: 0.80, style: 0.15 },
+  narration:      { stability: 0.55, similarity_boost: 0.80, style: 0.10 },
+  dramatic:       { stability: 0.30, similarity_boost: 0.70, style: 0.35 },
+  audiobook:      { stability: 0.60, similarity_boost: 0.80, style: 0.10 },
+};
+
+// ── Text Enhancement (human-like pauses & normalization) ────────────────────
+
+function numberToWords(n) {
+  if (n === 0) return "zero";
+  const ones = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+    "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+  const tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+
+  if (n < 0) return "negative " + numberToWords(-n);
+  if (n < 20) return ones[n];
+  if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "");
+  if (n < 1000) return ones[Math.floor(n / 100)] + " hundred" + (n % 100 ? " " + numberToWords(n % 100) : "");
+  if (n < 1000000) return numberToWords(Math.floor(n / 1000)) + " thousand" + (n % 1000 ? " " + numberToWords(n % 1000) : "");
+  if (n < 1000000000) return numberToWords(Math.floor(n / 1000000)) + " million" + (n % 1000000 ? " " + numberToWords(n % 1000000) : "");
+  return String(n);
+}
+
+function enhanceText(text) {
+  let t = text;
+
+  // Dollar amounts: $100 → one hundred dollars
+  t = t.replace(/\$(\d+(?:,\d{3})*(?:\.\d+)?)/g, (_, num) => {
+    const n = parseFloat(num.replace(/,/g, ""));
+    return numberToWords(Math.floor(n)) + " dollars" + (n % 1 ? " and " + numberToWords(Math.round((n % 1) * 100)) + " cents" : "");
+  });
+
+  // Percentages: 50% → fifty percent
+  t = t.replace(/(\d+(?:\.\d+)?)%/g, (_, num) => numberToWords(Math.floor(parseFloat(num))) + " percent");
+
+  // Standalone numbers
+  t = t.replace(/\b(\d{1,9})\b/g, (_, num) => numberToWords(parseInt(num, 10)));
+
+  // Symbol expansion
+  t = t.replace(/\s&\s/g, " and ");
+  t = t.replace(/@/g, "at");
+  t = t.replace(/\s\+\s/g, " plus ");
+  t = t.replace(/#(\w)/g, "number $1");
+
+  // Ellipsis → hesitation pause
+  t = t.replace(/\.{3}/g, '<break time="0.5s"/>');
+
+  // Em-dash → breath pause
+  t = t.replace(/—/g, '<break time="0.35s"/>');
+
+  // Comma pauses (after comma + space, before next word)
+  t = t.replace(/,\s+/g, ', <break time="0.25s"/>');
+
+  // Sentence-ending pauses (after . ! ? followed by space and uppercase letter)
+  t = t.replace(/([.!?])\s+(?=[A-Z])/g, '$1 <break time="0.6s"/>');
+
+  return t;
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function resolveVoiceId(nameOrId) {
@@ -90,19 +154,25 @@ function resolveOutputPath(filename) {
   return path.join(OUTPUT_DIR, filename);
 }
 
-async function textToSpeechRequest(text, voiceId, outputPath, modelId, stability, similarityBoost) {
+async function textToSpeechRequest(text, voiceId, outputPath, { modelId, stability, similarityBoost, style, preset, enhanceTextFlag = true } = {}) {
   if (!API_KEY) throw new Error("ELEVENLABS_API_KEY is not set. Run `node setup.js` to configure.");
 
-  const body = {
-    text,
-    model_id: modelId || "eleven_multilingual_v2",
+  // Apply text enhancement for natural pauses
+  const processedText = enhanceTextFlag ? enhanceText(text) : text;
+
+  // Resolve voice settings: preset defaults → explicit overrides
+  const presetSettings = PRESETS[preset] || PRESETS.natural;
+  const voiceSettings = {
+    stability: stability ?? presetSettings.stability,
+    similarity_boost: similarityBoost ?? presetSettings.similarity_boost,
+    style: style ?? presetSettings.style,
   };
 
-  if (stability !== undefined || similarityBoost !== undefined) {
-    body.voice_settings = {};
-    if (stability !== undefined) body.voice_settings.stability = stability;
-    if (similarityBoost !== undefined) body.voice_settings.similarity_boost = similarityBoost;
-  }
+  const body = {
+    text: processedText,
+    model_id: modelId || "eleven_multilingual_v2",
+    voice_settings: voiceSettings,
+  };
 
   const res = await fetch(`${BASE_URL}/text-to-speech/${voiceId}`, {
     method: "POST",
@@ -145,28 +215,35 @@ const server = new McpServer({
 // Tool 1: text_to_speech
 server.tool(
   "text_to_speech",
-  "Convert text to speech using ElevenLabs and save as MP3",
+  "Convert text to speech using ElevenLabs and save as MP3. Automatically enhances text with natural pauses and breathing room. Use presets for quick voice tuning: natural (default), conversational (YouTube/demos), narration (tutorials), dramatic (trailers).",
   {
     text: z.string().describe("The text to convert to speech"),
     voice: z.string().optional().describe("Voice name (e.g. Rachel, Drew, George) or ElevenLabs voice ID. Defaults to Rachel"),
     filename: z.string().optional().describe("Output filename (e.g. intro.mp3). Saved to the configured output directory"),
     model_id: z.string().optional().describe("ElevenLabs model ID. Defaults to eleven_multilingual_v2"),
-    stability: z.number().min(0).max(1).optional().describe("Voice stability (0-1)"),
-    similarity_boost: z.number().min(0).max(1).optional().describe("Voice similarity boost (0-1)"),
+    preset: z.enum(["natural", "conversational", "demo", "narration", "dramatic", "audiobook"]).optional().describe("Voice preset: natural (default), conversational (YouTube/demos), narration (tutorials), dramatic (trailers)"),
+    stability: z.number().min(0).max(1).optional().describe("Voice stability (0-1). Overrides preset value"),
+    similarity_boost: z.number().min(0).max(1).optional().describe("Voice similarity boost (0-1). Overrides preset value"),
+    enhance_text: z.boolean().optional().describe("Auto-enhance text with natural pauses and number expansion. Defaults to true"),
   },
-  async ({ text, voice, filename, model_id, stability, similarity_boost }) => {
+  async ({ text, voice, filename, model_id, preset, stability, similarity_boost, enhance_text }) => {
     try {
-      // Try to fetch voices first so resolveVoiceId can search API voices
       try { await fetchVoices(); } catch { /* use defaults */ }
 
       const voiceId = resolveVoiceId(voice);
       const outputPath = resolveOutputPath(filename);
-      const result = await textToSpeechRequest(text, voiceId, outputPath, model_id, stability, similarity_boost);
+      const result = await textToSpeechRequest(text, voiceId, outputPath, {
+        modelId: model_id,
+        stability,
+        similarityBoost: similarity_boost,
+        preset,
+        enhanceTextFlag: enhance_text !== false,
+      });
 
       return {
         content: [{
           type: "text",
-          text: `Saved MP3 to ${result.path} (${formatBytes(result.bytes)})\nVoice: ${voice || "Rachel"}\nText length: ${text.length} chars`,
+          text: `Saved MP3 to ${result.path} (${formatBytes(result.bytes)})\nVoice: ${voice || "Rachel"}\nPreset: ${preset || "natural"}\nText enhancement: ${enhance_text !== false ? "on" : "off"}\nText length: ${text.length} chars`,
         }],
       };
     } catch (err) {
@@ -178,26 +255,33 @@ server.tool(
 // Tool 2: batch_text_to_speech
 server.tool(
   "batch_text_to_speech",
-  "Convert multiple texts to speech in parallel. Each item can have a different voice and filename.",
+  "Convert multiple texts to speech in parallel. Each item can have a different voice and filename. Supports presets and auto text enhancement.",
   {
     items: z.array(z.object({
       text: z.string().describe("The text to convert"),
       voice: z.string().optional().describe("Voice name or ID for this item"),
       filename: z.string().optional().describe("Output filename for this item"),
       model_id: z.string().optional().describe("ElevenLabs model ID"),
+      preset: z.enum(["natural", "conversational", "demo", "narration", "dramatic", "audiobook"]).optional().describe("Voice preset for this item"),
       stability: z.number().min(0).max(1).optional(),
       similarity_boost: z.number().min(0).max(1).optional(),
+      enhance_text: z.boolean().optional().describe("Auto-enhance text with natural pauses. Defaults to true"),
     })).describe("Array of text-to-speech items to process in parallel"),
   },
   async ({ items }) => {
     try {
-      // Pre-fetch voices for name resolution
       try { await fetchVoices(); } catch { /* use defaults */ }
 
       const promises = items.map((item, i) => {
         const voiceId = resolveVoiceId(item.voice);
         const outputPath = resolveOutputPath(item.filename || `batch_${i + 1}_${Date.now()}`);
-        return textToSpeechRequest(item.text, voiceId, outputPath, item.model_id, item.stability, item.similarity_boost)
+        return textToSpeechRequest(item.text, voiceId, outputPath, {
+          modelId: item.model_id,
+          stability: item.stability,
+          similarityBoost: item.similarity_boost,
+          preset: item.preset,
+          enhanceTextFlag: item.enhance_text !== false,
+        })
           .then((result) => ({ success: true, index: i + 1, voice: item.voice || "Rachel", ...result }))
           .catch((err) => ({ success: false, index: i + 1, voice: item.voice || "Rachel", error: err.message }));
       });
@@ -281,6 +365,24 @@ server.tool(
       }
       return { content: [{ type: "text", text: `Error: ${err.message}` }], isError: true };
     }
+  }
+);
+
+// Tool 5: preview_text_enhancement
+server.tool(
+  "preview_text_enhancement",
+  "Preview how text will be enhanced with SSML pauses and number expansion before sending to ElevenLabs. Use this to check and tweak scripts without burning API credits.",
+  {
+    text: z.string().describe("The text to preview enhancement for"),
+  },
+  async ({ text }) => {
+    const enhanced = enhanceText(text);
+    return {
+      content: [{
+        type: "text",
+        text: `Original:\n${text}\n\nEnhanced:\n${enhanced}`,
+      }],
+    };
   }
 );
 
