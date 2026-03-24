@@ -281,20 +281,39 @@ and unsustainable."
 
 **Skip auto pauses:**
 ```
-Generate a voiceover using George voice, demo preset, with enhance_text off:
+Generate a voiceover using George voice, demo preset, with enhance_text off, save as test_raw:
 "Your raw text goes here exactly as you want it spoken."
 ```
 
 **Override a preset value:**
 ```
-Generate a voiceover using George voice, demo preset, stability 0.3:
+Generate a voiceover using George voice, demo preset, stability 0.3, save as test_override:
 "This will use demo settings but with lower stability for more expression."
 ```
 
-**Preview before generating:**
+**Preview before generating (no API cost):**
 ```
-Preview the text enhancement for: "Stop wasting time on manual scripts.
-Let Fathom handle the heavy lifting and start testing at the speed of thought."
+Preview the text enhancement for: "Hey everyone! $100 worth of testing in 50% less time... sounds good, right?"
+```
+
+</td>
+</tr>
+</table>
+
+### Voice discovery
+
+<table>
+<tr>
+<td>
+
+**List all available voices:**
+```
+List all available ElevenLabs voices
+```
+
+**Look up a specific voice ID:**
+```
+What is the voice ID for George?
 ```
 
 </td>
