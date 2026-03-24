@@ -311,10 +311,7 @@ Preview the text enhancement for: "Hey everyone! $100 worth of testing in 50% le
 List all available ElevenLabs voices
 ```
 
-**Look up a specific voice ID:**
-```
-What is the voice ID for George?
-```
+> Just use the voice **name** in your prompts — no IDs needed. The server handles the lookup automatically.
 
 </td>
 </tr>
@@ -413,40 +410,109 @@ Let's take a quick look at how it works.
 
 ## 🎙️ Available Voices
 
-Say `"list available voices"` to Claude for the full list. Popular picks:
+Say `"List all available ElevenLabs voices"` to Claude to see your full voice library. Here are the popular picks — each with a test prompt you can paste directly:
 
 <table>
 <tr>
 <th>Voice</th>
 <th>Style</th>
 <th>Good for</th>
-</tr>
-<tr>
-<td><img src="https://img.shields.io/badge/George-2C3E50?style=flat-square" alt="George" /> <strong>George</strong></td>
-<td>Warm, authoritative</td>
-<td>Product demos, intros</td>
+<th>Output</th>
+<th>Test prompt — copy & paste into Claude</th>
 </tr>
 <tr>
 <td><img src="https://img.shields.io/badge/Rachel-8E44AD?style=flat-square" alt="Rachel" /> <strong>Rachel</strong></td>
 <td>Clear, professional</td>
 <td>Narration, tutorials</td>
+<td><code>voice_rachel.mp3</code></td>
+<td><code>Generate a voice snippet using Rachel voice, natural preset, save as voice_rachel: "Hi, I'm Rachel. Clear, professional, and ready to guide you through anything."</code></td>
+</tr>
+<tr>
+<td><img src="https://img.shields.io/badge/George-2C3E50?style=flat-square" alt="George" /> <strong>George</strong></td>
+<td>Warm, authoritative</td>
+<td>Product demos, intros</td>
+<td><code>voice_george.mp3</code></td>
+<td><code>Generate a voice snippet using George voice, demo preset, save as voice_george: "Hi, I'm George. Warm, authoritative, and perfect for product walkthroughs."</code></td>
 </tr>
 <tr>
 <td><img src="https://img.shields.io/badge/Drew-2980B9?style=flat-square" alt="Drew" /> <strong>Drew</strong></td>
 <td>Friendly, casual</td>
 <td>YouTube, conversational</td>
+<td><code>voice_drew.mp3</code></td>
+<td><code>Generate a voice snippet using Drew voice, conversational preset, save as voice_drew: "Hey, I'm Drew! Friendly, casual, and great for YouTube content."</code></td>
 </tr>
 <tr>
 <td><img src="https://img.shields.io/badge/Paul-27AE60?style=flat-square" alt="Paul" /> <strong>Paul</strong></td>
 <td>Deep, steady</td>
 <td>Audiobooks, explainers</td>
+<td><code>voice_paul.mp3</code></td>
+<td><code>Generate a voice snippet using Paul voice, audiobook preset, save as voice_paul: "Hi, I'm Paul. Deep, steady, and built for long-form storytelling."</code></td>
 </tr>
 <tr>
 <td><img src="https://img.shields.io/badge/Sarah-E74C3C?style=flat-square" alt="Sarah" /> <strong>Sarah</strong></td>
 <td>Bright, energetic</td>
 <td>Marketing, CTAs</td>
+<td><code>voice_sarah.mp3</code></td>
+<td><code>Generate a voice snippet using Sarah voice, conversational preset, save as voice_sarah: "Hey there! I'm Sarah. Bright, energetic, and ready to grab attention."</code></td>
+</tr>
+<tr>
+<td><img src="https://img.shields.io/badge/Clyde-E67E22?style=flat-square" alt="Clyde" /> <strong>Clyde</strong></td>
+<td>Gruff, character</td>
+<td>Gaming, characters</td>
+<td><code>voice_clyde.mp3</code></td>
+<td><code>Generate a voice snippet using Clyde voice, dramatic preset, save as voice_clyde: "The name's Clyde. Gruff, bold, and not here to mess around."</code></td>
+</tr>
+<tr>
+<td><img src="https://img.shields.io/badge/Domi-16A085?style=flat-square" alt="Domi" /> <strong>Domi</strong></td>
+<td>Strong, confident</td>
+<td>Ads, promos</td>
+<td><code>voice_domi.mp3</code></td>
+<td><code>Generate a voice snippet using Domi voice, dramatic preset, save as voice_domi: "I'm Domi. Strong, confident, and built for promos that demand attention."</code></td>
+</tr>
+<tr>
+<td><img src="https://img.shields.io/badge/Dave-34495E?style=flat-square" alt="Dave" /> <strong>Dave</strong></td>
+<td>Conversational, young</td>
+<td>Podcasts, casual</td>
+<td><code>voice_dave.mp3</code></td>
+<td><code>Generate a voice snippet using Dave voice, conversational preset, save as voice_dave: "What's up, I'm Dave. Chill, conversational, perfect for podcasts."</code></td>
+</tr>
+<tr>
+<td><img src="https://img.shields.io/badge/Fin-3498DB?style=flat-square" alt="Fin" /> <strong>Fin</strong></td>
+<td>Sharp, Irish accent</td>
+<td>Storytelling</td>
+<td><code>voice_fin.mp3</code></td>
+<td><code>Generate a voice snippet using Fin voice, narration preset, save as voice_fin: "Hi, I'm Fin. Sharp, distinctive, and made for storytelling."</code></td>
+</tr>
+<tr>
+<td><img src="https://img.shields.io/badge/Josh-9B59B6?style=flat-square" alt="Josh" /> <strong>Josh</strong></td>
+<td>Deep, narrative</td>
+<td>Documentaries</td>
+<td><code>voice_josh.mp3</code></td>
+<td><code>Generate a voice snippet using Josh voice, narration preset, save as voice_josh: "Hi, I'm Josh. Deep, cinematic, and built for documentaries."</code></td>
 </tr>
 </table>
+
+### 🔊 Try all voices at once
+
+Paste this into Claude Desktop to generate all 10 voice snippets in one shot:
+
+```
+Generate 10 voice snippets, one per voice, using the demo preset:
+1. Rachel, save as voice_rachel: "Hi, I'm Rachel. Clear, professional, and ready to guide you through anything."
+2. George, save as voice_george: "Hi, I'm George. Warm, authoritative, and perfect for product walkthroughs."
+3. Drew, save as voice_drew: "Hey, I'm Drew! Friendly, casual, and great for YouTube content."
+4. Paul, save as voice_paul: "Hi, I'm Paul. Deep, steady, and built for long-form storytelling."
+5. Sarah, save as voice_sarah: "Hey there! I'm Sarah. Bright, energetic, and ready to grab attention."
+6. Clyde, save as voice_clyde: "The name's Clyde. Gruff, bold, and not here to mess around."
+7. Domi, save as voice_domi: "I'm Domi. Strong, confident, and built for promos that demand attention."
+8. Dave, save as voice_dave: "What's up, I'm Dave. Chill, conversational, perfect for podcasts."
+9. Fin, save as voice_fin: "Hi, I'm Fin. Sharp, distinctive, and made for storytelling."
+10. Josh, save as voice_josh: "Hi, I'm Josh. Deep, cinematic, and built for documentaries."
+```
+
+> 💡 **Tip:** You can also use any voice from your ElevenLabs account — including cloned voices. Just say the voice name or paste the voice ID directly.
+>
+> 📋 **See all voices:** Paste `List all available ElevenLabs voices` into Claude to see your full library.
 
 ---
 
