@@ -1,0 +1,16 @@
+{
+  "name": "drizz-voice-generator",
+  "version": "1.0.0",
+  "description": "ElevenLabs text-to-speech MCP server for Claude Desktop and Claude Code",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "setup": "node setup.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "zod": "^3.23.0"
+  },
+  "license": "MIT"
+}
